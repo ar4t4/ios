@@ -151,7 +151,6 @@ struct SwiftUIView: View {
     }
 }
 
-// Snowfall Animation View
 struct SnowfallView: View {
     @State private var snowflakes: [Snowflake] = []
 
@@ -166,13 +165,15 @@ struct SnowfallView: View {
                 }
             }
             .onAppear {
+                // Add new snowflakes periodically
                 Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
-                    if snowflakes.count < 30 {
+                    if snowflakes.count < 50 {
                         addSnowflake(geometry: geometry)
                     }
                 }
 
-                Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
+                // Update snowflakes' positions periodically
+                Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in // 60 FPS
                     updateSnowflakes(geometry: geometry)
                 }
             }
@@ -180,28 +181,30 @@ struct SnowfallView: View {
     }
 
     private func addSnowflake(geometry: GeometryProxy) {
-        if Int.random(in: 0...1) == 0 { return }
         let newSnowflake = Snowflake(
             id: UUID(),
             x: CGFloat.random(in: 0...geometry.size.width),
-            y: -10,
+            y: -10, // Start above the top of the screen
             size: CGFloat.random(in: 5...20),
             opacity: Double.random(in: 0.6...1.0),
-            speed: CGFloat.random(in: 0.3...0.6)
+            speed: CGFloat.random(in: 2...5) // Faster speed for smoother appearance
         )
         snowflakes.append(newSnowflake)
     }
 
     private func updateSnowflakes(geometry: GeometryProxy) {
-        for index in snowflakes.indices {
-            snowflakes[index].y += snowflakes[index].speed
-            if snowflakes[index].y > geometry.size.height + 10 {
-                snowflakes.remove(at: index)
-                break
+        withAnimation(.linear(duration: 0.016)) { // Smooth linear animation
+            for index in snowflakes.indices {
+                snowflakes[index].y += snowflakes[index].speed
+                if snowflakes[index].y > geometry.size.height + 10 {
+                    snowflakes.remove(at: index) // Remove snowflake if it goes out of bounds
+                    break
+                }
             }
         }
     }
 }
+
 
 // Snowflake Model
 struct Snowflake: Identifiable {
